@@ -1,0 +1,340 @@
+---
+import "../app.css";
+import { Image } from "astro:assets";
+import { Picture } from "astro:assets";
+
+import storageSvg from "../assets/storage.svg";
+import logoSvg from "../assets/st-logo.svg";
+import ScrollButton from "../components/ScrollButton.astro";
+
+import videoEndImage from "../assets/video-end-blur.jpg";
+
+import IconCard from "../components/IconCard.astro";
+import AiIcon from "../assets/ai.svg";
+import checkIcon from "../assets/check.svg";
+import lockIcon from "../assets/lock.svg";
+import wifiIcon from "../assets/wifi.svg";
+import folderIcon from "../assets/folder.svg";
+import Layout from "../layouts/Layout.astro";
+---
+
+<script>
+  import { gsap } from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+  import Lenis from "lenis";
+
+  //*******************************************************************************************************************/
+  // SMOOTH SCROLL
+
+  const lenis = new Lenis();
+
+  function raf(time) {
+    lenis.raf(time);
+    requestAnimationFrame(raf);
+  }
+  requestAnimationFrame(raf);
+
+  //*******************************************************************************************************************/
+  // SLIDE TEXTS
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  const slideRows = gsap.utils.toArray(".slide-row");
+  gsap.set(slideRows, { opacity: 0, scale: 0.5 });
+
+  ScrollTrigger.batch(".slide-row ", {
+    start: "top 70%",
+    end: "bottom 20%",
+
+    onEnter: (elements, triggers) => {
+      gsap.to(elements, { opacity: 1, scale: 1, duration: 0.5, stagger: 0.3, overwrite: true, ease: "power2.out" });
+    },
+    onLeave: (elements, triggers) => {
+      gsap.to(elements, { opacity: 0, scale: 0.5, duration: 0.5, stagger: 0.1, overwrite: true, ease: "power2.in" });
+    },
+    onEnterBack: (elements, triggers) => {
+      gsap.to(elements, { opacity: 1, scale: 1, duration: 0.5, stagger: 0.3, overwrite: true, ease: "power2.out" });
+    },
+    onLeaveBack: (elements, triggers) => {
+      gsap.to(elements, { opacity: 0, scale: 0.5, duration: 0.5, stagger: 0.1, overwrite: true, ease: "power2.in" });
+    },
+  });
+
+  //*******************************************************************************************************************/
+  // PAGE ELEMENTS
+
+  gsap.from(".fade-in", {
+    scrollTrigger: {
+      trigger: "#page2",
+      toggleActions: "restart reverse restart reverse",
+    },
+    y: 100,
+    opacity: 0,
+    duration: 0.5,
+    delay: 0.2,
+    ease: "sine.out",
+    stagger: 0.1,
+  });
+
+  //*******************************************************************************************************************/
+  // SLIDE ICONS
+
+  gsap.from(".slide-icon", {
+    scrollTrigger: {
+      trigger: "#slide3",
+      markers: false,
+      start: "top 30%",
+      end: "bottom 60%",
+      scrub: false,
+      toggleActions: "restart reverse restart reverse",
+    },
+
+    scale: 0.5,
+    opacity: 0,
+    duration: 0.5,
+    ease: "power2.out",
+    stagger: 0.1,
+  });
+
+  //*******************************************************************************************************************/
+  // BLURRED BG IMAGE
+
+  gsap.set("#video-end-image", { opacity: 0 });
+
+  gsap.to("#video-end-image", {
+    scrollTrigger: {
+      markers: false,
+      start: "top 100%",
+      end: "top",
+      trigger: "#page2",
+      scrub: 1,
+      pin: false,
+    },
+    opacity: 1,
+    duration: 1,
+  });
+
+  //*******************************************************************************************************************/
+  // SCROLL DOWN BUTTON
+
+  gsap.to("#scroll-down-button", {
+    scrollTrigger: {
+      markers: false,
+      start: "10% top",
+      end: "bottom 80%",
+      trigger: "#slide1",
+      scrub: 1,
+      pin: false,
+    },
+    autoAlpha: 0,
+    opacity: 0,
+    duration: 0.1,
+  });
+
+  //*******************************************************************************************************************/
+  // SPACETIME LOGO
+
+  gsap.to("#st-logo", {
+    scrollTrigger: {
+      markers: false,
+      start: "10% top",
+      end: "bottom 80%",
+      trigger: "#slide1",
+      scrub: 1,
+      pin: false,
+    },
+    autoAlpha: 0,
+    opacity: 0,
+    duration: 0.1,
+  });
+
+  //*******************************************************************************************************************/
+  // BG VIDEO SCRUB
+
+  const bgVideo = document.getElementById("bg-video") as HTMLVideoElement;
+  const src = bgVideo.currentSrc || bgVideo.src;
+
+  let tl = gsap.timeline({
+    scrollTrigger: {
+      trigger: "video",
+      start: "top top",
+      end: () => `top+=${document.getElementById("main").offsetHeight} center`,
+      scrub: 1,
+      markers: false,
+    },
+  });
+
+  let isInited = false;
+
+  console.log(bgVideo);
+
+  setTimeout(function () {
+    if (window["fetch"]) {
+      fetch(src)
+        .then((response) => response.blob())
+        .then((response) => {
+          var blobURL = URL.createObjectURL(response);
+
+          console.log("onloadeddata");
+        });
+    }
+  }, 1000);
+
+  bgVideo.onloadeddata = function () {
+    initScrollScrub();
+    console.log("onloadeddata");
+  };
+  bgVideo.onloadedmetadata = function () {
+    initScrollScrub();
+    console.log("onloadedmetadata");
+  };
+
+  function initScrollScrub() {
+    if (!isInited) {
+      isInited = true;
+
+      //isTouchDevice
+      if ("ontouchstart" in window || navigator.maxTouchPoints > 0) {
+        bgVideo.play();
+        bgVideo.pause();
+      }
+      //Init scroll scrub
+      tl.to(bgVideo, { currentTime: bgVideo.duration });
+    }
+  }
+</script>
+
+<Layout title="Spacetime">
+  <h1 class="fixed text-xs text-white opacity-5 -top-10">Spacetime</h1>
+
+  <!-- BG VIDEO -->
+  <div class="fixed w-full h-screen flex justify-center">
+    <video id="bg-video" src="/st-120.mp4" muted class="object-cover w-full h-full max-w-[100vh]" playsinline></video>
+  </div>
+
+  <!-- BLURRED BG IMAGE -->
+  <div id="video-end-image" class="opacity-0 fixed w-full h-screen flex justify-center">
+    <Picture src={videoEndImage} class="object-cover w-full h-full max-w-[100vh]" alt="Bg image 1" />
+  </div>
+
+  <!-- SCROLL DOWN BUTTON -->
+  <div class="fixed h-screen w-full flex justify-center items-end">
+    <ScrollButton id="scroll-down-button" href="#page2" />
+  </div>
+
+  <div id="main">
+    <div id="slides">
+      <!-- SLIDE TEXTS 1 -->
+      <div id="slide1" class="slide">
+        <div class="slide-row">Storage solutions.</div>
+        <div class="slide-row font-semibold mt-1">Light-years ahead.</div>
+      </div>
+
+      <!-- SLIDE TEXTS 2 -->
+      <div id="slide2" class="slide">
+        <div class="slide-row sm:max-w-[1000px] text-center">
+          Fully managed storage based in Finland, delivering <span class="font-semibold">reliability</span> and <span class="font-semibold"
+            >peace of mind</span
+          >.
+        </div>
+      </div>
+
+      <!-- SLIDE ICONS -->
+      <div id="slide3" class="h-[220vh] sm:[125vh] lg:h-screen w-full flex justify-center items-center px-4">
+        <div class="flex flex-col flex-wrap sm:flex-row justify-around">
+          <IconCard title="AI Training" text="Optimized for scale and performance."
+            ><Image src={AiIcon} class="object-cover" alt=" A description of my image." />
+          </IconCard>
+          <IconCard title="Regulatory Compliance" text="Fulfilling NIS-2 and Data Act 2025 requiements."
+            ><Image src={checkIcon} alt="A description of my image." /></IconCard
+          >
+          <IconCard title="Ransomware Protection" text="Avoid ransoms, reduce downtime and safeguard your data."
+            ><Image src={lockIcon} alt="A description of my image." /></IconCard
+          >
+          <IconCard title="Internet of Things (IoT)" text="Handle vast data from devices to drive growth and innovation."
+            ><Image src={wifiIcon} alt="A description of my image." /></IconCard
+          >
+          <IconCard title="Archiving and Backup" text="Ensuring peace of mind and regulatory compliance."
+            ><Image src={folderIcon} alt="A description of my image." /></IconCard
+          >
+        </div>
+      </div>
+
+      <!-- PAGE 2 -->
+      <div id="page2" class="relative flex justify-center items-center min-h-svh w-full pb-12 pt-4 px-4">
+        <div class="md:max-w-[75vw] xl:max-w-[1000px] flex flex-col lg:flex-row">
+          <!-- LEFT -->
+          <div class="">
+            <div class="text-md fade-in">
+              <p>
+                At SpaceTime, we deliver a storage-as-a-service solution that outperforms hyperscaler storage with exceptional performance
+                and limitless workload possibilities.
+              </p>
+              <p class="mt-4">
+                We equip local Managed Service Providers (MSPs) to compete against hyperscalers by simplifying storage management and
+                dramatically reducing costs, enabling them to access new opportunities and scale their services efficiently.
+              </p>
+            </div>
+
+            <div class="mt-12 sm:grid grid-cols-2">
+              <!-- CARD 1 -->
+              <div class="sm:pr-4 fade-in">
+                <div class="bg-white rounded-md w-full h-full bg-opacity-10 p-8">
+                  <div class="text-xs uppercase tracking-[.25em]">Storage in Production</div>
+                  <div class="flex flex-row mt-4 items-center justify-start">
+                    <div class="pr-4"><img src={storageSvg.src} alt="" class="w-full h-full max-h-12" /></div>
+                    <div class="text-3xl">70PB</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- CARD 2 -->
+              <div class="sm:pl-4 fade-in">
+                <div class="bg-white bg-opacity-10 rounded-md w-full h-full p-8 mt-8 sm:mt-0">
+                  <div class="text-xs uppercase tracking-[.25em]">Trusted by</div>
+                  <div class="flex flex-col mt-4 justify-start">
+                    <div class="flex flex-row items-center justify-start">
+                      <div class="text-3xl">5000+</div>
+                      <div class="text-sm ml-4">SMBS</div>
+                    </div>
+                    <div class="flex flex-row items-center justify-start">
+                      <div class="text-3xl">100+</div>
+                      <div class="text-sm ml-4">PUBLIC SECTOR UNITS</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT -->
+          <div class="lg:ml-16 flex flex-col mt-12 lg:mt-0 fade-in">
+            <div class="text-xs uppercase tracking-[.25em] w-max">WANT TO KNOW MORE?</div>
+            <div class="text-md mt-4">Contact us and let’s talk.</div>
+            <div class="text-md bg-white text-black rounded-full py-1 px-6 mt-6 max-w-min hover:bg-neutral-200">
+              <a href="mailto:hello@spacetime.eu" aria-label="Email button">hello@spacetime.eu</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="st-logo" class="fixed w-full top-0 flex justify-start">
+      <img id="logo" src={logoSvg.src} alt="Spacetime logo" class="max-h-10 ml-1 mt-2" width="280" height="50" />
+    </div>
+
+    <style>
+      .slide {
+        @apply h-screen w-full flex flex-col justify-center items-center px-4;
+      }
+
+      .slide-row {
+        @apply text-white font-inter text-8vw md:text-5xl md:leading-snug;
+      }
+
+      .slide-icon {
+        @apply text-black font-inter text-2xl bg-white bg-opacity-50 rounded-xl size-32 relative flex justify-center items-center m-10;
+      }
+    </style>
+  </div>
+</Layout>
