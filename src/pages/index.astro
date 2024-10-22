@@ -166,7 +166,7 @@ import Layout from "../layouts/Layout.astro";
 
   let isInited = false;
 
-  console.log(bgVideo);
+  // console.log(bgVideo);
 
   setTimeout(function () {
     if (window["fetch"]) {
@@ -175,18 +175,18 @@ import Layout from "../layouts/Layout.astro";
         .then((response) => {
           var blobURL = URL.createObjectURL(response);
 
-          console.log("onloadeddata");
+          // console.log("onloadeddata");
         });
     }
   }, 1000);
 
   bgVideo.onloadeddata = function () {
     initScrollScrub();
-    console.log("onloadeddata");
+    // console.log("onloadeddata");
   };
   bgVideo.onloadedmetadata = function () {
     initScrollScrub();
-    console.log("onloadedmetadata");
+    // console.log("onloadedmetadata");
   };
 
   function initScrollScrub() {
